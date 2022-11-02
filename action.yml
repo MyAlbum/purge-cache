@@ -1,0 +1,16 @@
+name: "Purge cache"
+description: Purge GitHub Actions cache
+inputs:
+  debug:
+    description: 'Out debug info'
+    default: false
+  max-age:
+    description: 'Delete all caches older than this value in seconds'
+    required: true
+    default: 604800
+  token:
+    description: Used to communicate with GitHub API. Since there's a default, this is typically not supplied by the user.
+    default: ${{ github.token }}
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
