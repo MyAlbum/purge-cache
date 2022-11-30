@@ -12,8 +12,7 @@ async function run() {
     octokit.rest.actions.getActionsCacheList({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
-      per_page: 100,
-    }), response => response.data
+    }), { per_page: 100 }, response => response.data
   );
 
   console.log('new stuff')
