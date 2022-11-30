@@ -16,6 +16,8 @@ async function run() {
     }), response => response.data
   );
 
+  console.log('new stuff')
+
   if(debug) {
     console.log(`Found ${cachesRequest.actions_caches.length} caches`);
   }
