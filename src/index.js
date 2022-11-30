@@ -8,11 +8,13 @@ async function run() {
   const octokit = github.getOctokit(token);
   const maxDate = new Date(Date.now() - maxAge * 1000)
 
-  const { data: cachesRequest } = await octokit.rest.actions.getActionsCacheList({
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
-    per_page: 100,
-  });
+  const { data: cachesRequest } = await octokit.paginate(
+    octokit.rest.actions.getActionsCacheList({
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo,
+      per_page: 100,
+    }), response => response.data
+  );
 
   if(debug) {
     console.log(`Found ${cachesRequest.actions_caches.length} caches`);
