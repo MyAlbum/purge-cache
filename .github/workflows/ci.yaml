@@ -1,0 +1,17 @@
+jobs:
+  purge-old-caches:
+    name: Purge old caches
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v3
+      - name: Purge caches
+        uses: ./.
+        with:
+          debug: true
+          # 3 days
+          max-age: 259200
+
+"on":
+  push:
+  workflow_dispatch:
