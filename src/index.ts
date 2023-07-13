@@ -27,6 +27,11 @@ async function run() {
       per_page: 100,
       page: i
     });
+
+    if (cachesRequest.actions_caches.length == 0) {
+      break
+    }
+    
     results.push(...cachesRequest.actions_caches)
   }
 
