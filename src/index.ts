@@ -60,6 +60,4 @@ async function run() {
   });
 }
 
-const a = 42
-
 run();
