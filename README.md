@@ -3,6 +3,7 @@
 This action allows the cache of GitHub Actions to be automatically purged
 
 ## Basic usage
+
 See [action.yml](action.yml)
 
 ```yaml
@@ -12,6 +13,10 @@ steps:
   with:
     max-age: 604800 # Cache max 7 days since last use (this is the default)
 ```
+
+## Example workflow
+
+See [ci.yaml](.github/workflows/ci.yaml)
 
 ## Other options
 
