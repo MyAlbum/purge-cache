@@ -39,7 +39,8 @@ jobs:
         uses: ./.
         with:
           debug: true
-          by-time: created
+          created: true
+          accessed: true
           # 3 days
           max-age: 259200
       # -------- THIS ACTION --------

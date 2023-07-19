@@ -8,10 +8,14 @@ inputs:
     description: 'Delete all caches older than this value in seconds'
     required: true
     default: "604800"
-  by-time:
-    description: 'Delete by `created` or by last `accessed` time of a cache'
+  accessed:
+    description: 'When "true", delete caches by "last accessed" time'
     required: false
-    default: accessed
+    default: "true"
+  created:
+    description: 'When "true", delete caches by "created" time'
+    required: false
+    default: "false"
   token:
     description: Used to communicate with GitHub API. Since there's a default, this is typically not supplied by the user.
     default: ${{ github.token }}

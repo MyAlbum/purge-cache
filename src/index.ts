@@ -8,30 +8,21 @@ function setFailedWrongValue(input: string, value: string) {
 enum Inputs {
   Debug = "debug",
   MaxAge = "max-age",
-  ByTime = "by-time"
-}
-
-enum ByTimeValues {
   Accessed = "accessed",
-  Created = "created"
+  Created = "created",
+  Token = "token"
 }
 
 async function run() {
   const debug = core.getInput(Inputs.Debug, { required: false }) === 'true';
-
   const maxAge = core.getInput(Inputs.MaxAge, { required: true });
   const maxDate = new Date(Date.now() - Number.parseInt(maxAge) * 1000)
   if (maxDate === null) {
     setFailedWrongValue(Inputs.MaxAge, maxAge)
   }
-
-  const byTime = core.getInput(Inputs.ByTime, { required: false });
-  if (!(byTime === ByTimeValues.Accessed || byTime === ByTimeValues.Created)) {
-    setFailedWrongValue(Inputs.ByTime, byTime)
-  }
-  const doUseAccessedTime = byTime == ByTimeValues.Accessed;
-
-  const token = core.getInput('token', { required: false });
+  const accessed = core.getInput(Inputs.Accessed, { required: false }) === 'true';
+  const created = core.getInput(Inputs.Created, { required: false }) === 'true';
+  const token = core.getInput(Inputs.Token, { required: false });
   const octokit = github.getOctokit(token);
 
   interface Cache {
@@ -68,10 +59,14 @@ async function run() {
   results.forEach(async (cache) => {
     if (cache.last_accessed_at !== undefined && cache.id !== undefined) {
       const cacheDate = new Date(cache.last_accessed_at);
-      const phrase = doUseAccessedTime ? "last accessed" : "created";
       if (cacheDate < maxDate) {
         if (debug) {
-          console.log(`Deleting cache ${cache.key}, ${phrase} at ${cacheDate} before ${maxDate}`);
+          if (accessed) {
+            console.log(`Deleting cache ${cache.key}, last accessed at ${cacheDate} before ${maxDate}`);
+          }
+          if (created) {
+            console.log(`Deleting cache ${cache.key}, created at ${cacheDate} before ${maxDate}`);
+          }
         }
 
         try {
@@ -85,7 +80,12 @@ async function run() {
           console.log(`Failed to delete cache ${cache.key};\n\n${error}`);
         }
       } else if (debug) {
-        console.log(`Skipping cache ${cache.key}, ${phrase} at ${cacheDate} after ${maxDate}`);
+        if (accessed) {
+          console.log(`Skipping cache ${cache.key}, last accessed at ${cacheDate} after ${maxDate}`);
+        }
+        if (created) {
+          console.log(`Skipping cache ${cache.key}, created at ${cacheDate} after ${maxDate}`);
+        }
       }
     }
   });
