@@ -9554,13 +9554,10 @@ var Inputs;
 (function (Inputs) {
     Inputs["Debug"] = "debug";
     Inputs["MaxAge"] = "max-age";
-    Inputs["ByTime"] = "by-time";
+    Inputs["Accessed"] = "accessed";
+    Inputs["Created"] = "created";
+    Inputs["Token"] = "token";
 })(Inputs || (Inputs = {}));
-var ByTimeValues;
-(function (ByTimeValues) {
-    ByTimeValues["Accessed"] = "accessed";
-    ByTimeValues["Created"] = "created";
-})(ByTimeValues || (ByTimeValues = {}));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const debug = core.getInput(Inputs.Debug, { required: false }) === 'true';
@@ -9569,12 +9566,9 @@ function run() {
         if (maxDate === null) {
             setFailedWrongValue(Inputs.MaxAge, maxAge);
         }
-        const byTime = core.getInput(Inputs.ByTime, { required: false });
-        if (!(byTime === ByTimeValues.Accessed || byTime === ByTimeValues.Created)) {
-            setFailedWrongValue(Inputs.ByTime, byTime);
-        }
-        const doUseAccessedTime = byTime == ByTimeValues.Accessed;
-        const token = core.getInput('token', { required: false });
+        const accessed = core.getInput(Inputs.Accessed, { required: false }) === 'true';
+        const created = core.getInput(Inputs.Created, { required: false }) === 'true';
+        const token = core.getInput(Inputs.Token, { required: false });
         const octokit = github.getOctokit(token);
         const results = [];
         for (let i = 1; i <= 100; i += 1) {
@@ -9595,10 +9589,14 @@ function run() {
         results.forEach((cache) => __awaiter(this, void 0, void 0, function* () {
             if (cache.last_accessed_at !== undefined && cache.id !== undefined) {
                 const cacheDate = new Date(cache.last_accessed_at);
-                const phrase = doUseAccessedTime ? "last accessed" : "created";
                 if (cacheDate < maxDate) {
                     if (debug) {
-                        console.log(`Deleting cache ${cache.key}, ${phrase} at ${cacheDate} before ${maxDate}`);
+                        if (accessed) {
+                            console.log(`Deleting cache ${cache.key}, last accessed at ${cacheDate} before ${maxDate}`);
+                        }
+                        if (created) {
+                            console.log(`Deleting cache ${cache.key}, created at ${cacheDate} before ${maxDate}`);
+                        }
                     }
                     try {
                         yield octokit.rest.actions.deleteActionsCacheById({
@@ -9613,7 +9611,12 @@ function run() {
                     }
                 }
                 else if (debug) {
-                    console.log(`Skipping cache ${cache.key}, ${phrase} at ${cacheDate} after ${maxDate}`);
+                    if (accessed) {
+                        console.log(`Skipping cache ${cache.key}, last accessed at ${cacheDate} after ${maxDate}`);
+                    }
+                    if (created) {
+                        console.log(`Skipping cache ${cache.key}, created at ${cacheDate} after ${maxDate}`);
+                    }
                 }
             }
         }));
