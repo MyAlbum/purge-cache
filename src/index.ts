@@ -47,12 +47,16 @@ async function run() {
           console.log(`Deleting cache ${cache.key}, last accessed at ${cacheDate} before ${maxDate}`);
         }
 
-        await octokit.rest.actions.deleteActionsCacheById({
-          per_page: 100,
-          owner: github.context.repo.owner,
-          repo: github.context.repo.repo,
-          cache_id: cache.id,
-        });
+        try {
+          await octokit.rest.actions.deleteActionsCacheById({
+            per_page: 100,
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            cache_id: cache.id,
+          });
+        } catch (error) {
+          console.log(`Failed to delete cache ${cache.key}; ${error}`);
+        }
       } else if (debug) {
         console.log(`Skipping cache ${cache.key}, last accessed at ${cacheDate} after ${maxDate}`);
       }
