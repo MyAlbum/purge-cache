@@ -2,12 +2,16 @@ name: "Purge cache"
 description: Purge GitHub Actions cache
 inputs:
   debug:
-    description: 'Out debug info'
+    description: 'Output debug info'
     default: "false"
   max-age:
     description: 'Delete all caches older than this value in seconds'
     required: true
     default: "604800"
+  by-time:
+    description: 'Delete by `created` or by last `accessed` time of a cache'
+    required: false
+    default: accessed
   token:
     description: Used to communicate with GitHub API. Since there's a default, this is typically not supplied by the user.
     default: ${{ github.token }}

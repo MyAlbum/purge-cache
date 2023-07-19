@@ -11,7 +11,8 @@ steps:
 # Do other steps like checkout, install, compile, etc.
 - uses: MyAlbum/purge-cache@v2
   with:
-    max-age: 604800 # Cache max 7 days since last use (this is the default)
+    by-time: accessed # Purge caches by their last accessed time (default)
+    max-age: 604800 # Leave caches accessed in the last 7 days (default)
 ```
 
 ## Example workflow
@@ -19,6 +20,19 @@ steps:
 See [ci.yaml](.github/workflows/ci.yaml)
 
 ## Other options
+
+### By
+
+Each cache was `created` and then `accessed` at certain time.
+Select by what time to purge caches.
+
+```yaml
+steps:
+# Do other steps like checkout, install, compile, etc.
+- uses: MyAlbum/purge-cache@v2
+  with:
+    by: created # Purge caches by their created time
+```
 
 ### Debug
 
