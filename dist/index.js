@@ -9547,13 +9547,35 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const github = __importStar(__nccwpck_require__(5438));
 const core = __importStar(__nccwpck_require__(2186));
+function setFailedWrongValue(input, value) {
+    core.setFailed(`Wrong value for the input '${input}': ${value}`);
+}
+var Inputs;
+(function (Inputs) {
+    Inputs["Debug"] = "debug";
+    Inputs["MaxAge"] = "max-age";
+    Inputs["ByTime"] = "by-time";
+})(Inputs || (Inputs = {}));
+var ByTimeValues;
+(function (ByTimeValues) {
+    ByTimeValues["Accessed"] = "accessed";
+    ByTimeValues["Created"] = "created";
+})(ByTimeValues || (ByTimeValues = {}));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        const debug = core.getInput('debug', { required: false }) === 'true';
-        const maxAge = core.getInput('max-age', { required: true });
+        const debug = core.getInput(Inputs.Debug, { required: false }) === 'true';
+        const maxAge = core.getInput(Inputs.MaxAge, { required: true });
+        const maxDate = new Date(Date.now() - Number.parseInt(maxAge) * 1000);
+        if (maxDate === null) {
+            setFailedWrongValue(Inputs.MaxAge, maxAge);
+        }
+        const byTime = core.getInput(Inputs.ByTime, { required: false });
+        if (!(byTime === ByTimeValues.Accessed || byTime === ByTimeValues.Created)) {
+            setFailedWrongValue(Inputs.ByTime, byTime);
+        }
+        const doUseAccessedTime = byTime == ByTimeValues.Accessed;
         const token = core.getInput('token', { required: false });
         const octokit = github.getOctokit(token);
-        const maxDate = new Date(Date.now() - Number.parseInt(maxAge) * 1000);
         const results = [];
         for (let i = 1; i <= 100; i += 1) {
             const { data: cachesRequest } = yield octokit.rest.actions.getActionsCacheList({
@@ -9573,9 +9595,10 @@ function run() {
         results.forEach((cache) => __awaiter(this, void 0, void 0, function* () {
             if (cache.last_accessed_at !== undefined && cache.id !== undefined) {
                 const cacheDate = new Date(cache.last_accessed_at);
+                const phrase = doUseAccessedTime ? "last accessed" : "created";
                 if (cacheDate < maxDate) {
                     if (debug) {
-                        console.log(`Deleting cache ${cache.key}, last accessed at ${cacheDate} before ${maxDate}`);
+                        console.log(`Deleting cache ${cache.key}, ${phrase} at ${cacheDate} before ${maxDate}`);
                     }
                     try {
                         yield octokit.rest.actions.deleteActionsCacheById({
@@ -9586,11 +9609,11 @@ function run() {
                         });
                     }
                     catch (error) {
-                        console.log(`Failed to delete cache ${cache.key}; ${error}`);
+                        console.log(`Failed to delete cache ${cache.key};\n\n${error}`);
                     }
                 }
                 else if (debug) {
-                    console.log(`Skipping cache ${cache.key}, last accessed at ${cacheDate} after ${maxDate}`);
+                    console.log(`Skipping cache ${cache.key}, ${phrase} at ${cacheDate} after ${maxDate}`);
                 }
             }
         }));
