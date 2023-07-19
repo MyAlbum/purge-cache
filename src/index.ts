@@ -57,15 +57,18 @@ async function run() {
   }
 
   results.forEach(async (cache) => {
-    if (cache.last_accessed_at !== undefined && cache.id !== undefined) {
-      const cacheDate = new Date(cache.last_accessed_at);
-      if (cacheDate < maxDate) {
+    if (cache.last_accessed_at !== undefined && cache.created_at !== undefined && cache.id !== undefined) {
+      const accessedAt = new Date(cache.last_accessed_at);
+      const createdAt = new Date(cache.created_at);
+      const accessedCondition = accessed && accessedAt < maxDate;
+      const createdCondition = created && createdAt < maxDate;
+      if (accessedCondition || createdCondition) {
         if (debug) {
-          if (accessed) {
-            console.log(`Deleting cache ${cache.key}, last accessed at ${cacheDate} before ${maxDate}`);
+          if (accessedCondition) {
+            console.log(`Deleting cache ${cache.key}, last accessed at ${accessedAt} before ${maxDate}`);
           }
-          if (created) {
-            console.log(`Deleting cache ${cache.key}, created at ${cacheDate} before ${maxDate}`);
+          if (createdCondition) {
+            console.log(`Deleting cache ${cache.key}, created at ${createdAt} before ${maxDate}`);
           }
         }
 
@@ -81,10 +84,10 @@ async function run() {
         }
       } else if (debug) {
         if (accessed) {
-          console.log(`Skipping cache ${cache.key}, last accessed at ${cacheDate} after ${maxDate}`);
+          console.log(`Skipping cache ${cache.key}, last accessed at ${accessedAt} after ${maxDate}`);
         }
         if (created) {
-          console.log(`Skipping cache ${cache.key}, created at ${cacheDate} after ${maxDate}`);
+          console.log(`Skipping cache ${cache.key}, created at ${createdAt} after ${maxDate}`);
         }
       }
     }
