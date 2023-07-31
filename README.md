@@ -11,7 +11,9 @@ steps:
 # Do other steps like checkout, install, compile, etc.
 - uses: MyAlbum/purge-cache@v2
   with:
-    max-age: 604800 # Cache max 7 days since last use (this is the default)
+    accessed: true # Purge caches by their last accessed time (default)
+    created: false # Purge caches by their created time (default)
+    max-age: 604800 # Leave only caches accessed in the last 7 days (default)
 ```
 
 ## Example workflow

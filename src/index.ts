@@ -1,12 +1,29 @@
 import * as github from '@actions/github';
 import * as core from '@actions/core';
 
+function setFailedWrongValue(input: string, value: string) {
+  core.setFailed(`Wrong value for the input '${input}': ${value}`);
+}
+
+enum Inputs {
+  Debug = "debug",
+  MaxAge = "max-age",
+  Accessed = "accessed",
+  Created = "created",
+  Token = "token"
+}
+
 async function run() {
-  const debug = core.getInput('debug', { required: false }) === 'true';
-  const maxAge = core.getInput('max-age', { required: true });
-  const token = core.getInput('token', { required: false });
-  const octokit = github.getOctokit(token);
+  const debug = core.getInput(Inputs.Debug, { required: false }) === 'true';
+  const maxAge = core.getInput(Inputs.MaxAge, { required: true });
   const maxDate = new Date(Date.now() - Number.parseInt(maxAge) * 1000)
+  if (maxDate === null) {
+    setFailedWrongValue(Inputs.MaxAge, maxAge)
+  }
+  const accessed = core.getInput(Inputs.Accessed, { required: false }) === 'true';
+  const created = core.getInput(Inputs.Created, { required: false }) === 'true';
+  const token = core.getInput(Inputs.Token, { required: false });
+  const octokit = github.getOctokit(token);
 
   interface Cache {
     id?: number | undefined;
@@ -31,7 +48,7 @@ async function run() {
     if (cachesRequest.actions_caches.length == 0) {
       break
     }
-    
+
     results.push(...cachesRequest.actions_caches)
   }
 
@@ -40,11 +57,19 @@ async function run() {
   }
 
   results.forEach(async (cache) => {
-    if (cache.last_accessed_at !== undefined && cache.id !== undefined) {
-      const cacheDate = new Date(cache.last_accessed_at);
-      if (cacheDate < maxDate) {
+    if (cache.last_accessed_at !== undefined && cache.created_at !== undefined && cache.id !== undefined) {
+      const accessedAt = new Date(cache.last_accessed_at);
+      const createdAt = new Date(cache.created_at);
+      const accessedCondition = accessed && accessedAt < maxDate;
+      const createdCondition = created && createdAt < maxDate;
+      if (accessedCondition || createdCondition) {
         if (debug) {
-          console.log(`Deleting cache ${cache.key}, last accessed at ${cacheDate} before ${maxDate}`);
+          if (accessedCondition) {
+            console.log(`Deleting cache ${cache.key}, last accessed at ${accessedAt} before ${maxDate}`);
+          }
+          if (createdCondition) {
+            console.log(`Deleting cache ${cache.key}, created at ${createdAt} before ${maxDate}`);
+          }
         }
 
         try {
@@ -55,10 +80,15 @@ async function run() {
             cache_id: cache.id,
           });
         } catch (error) {
-          console.log(`Failed to delete cache ${cache.key}; ${error}`);
+          console.log(`Failed to delete cache ${cache.key};\n\n${error}`);
         }
       } else if (debug) {
-        console.log(`Skipping cache ${cache.key}, last accessed at ${cacheDate} after ${maxDate}`);
+        if (accessed) {
+          console.log(`Skipping cache ${cache.key}, last accessed at ${accessedAt} after ${maxDate}`);
+        }
+        if (created) {
+          console.log(`Skipping cache ${cache.key}, created at ${createdAt} after ${maxDate}`);
+        }
       }
     }
   });

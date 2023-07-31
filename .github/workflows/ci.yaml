@@ -8,21 +8,13 @@ name: CI
 
 jobs:
   build:
-    name: Build app
+    name: Build and test the action
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
       - uses: actions/checkout@v3
-
-      # -------- THIS ACTION --------
-      - name: Purge caches
-        uses: ./.
-        with:
-          debug: true
-          # 3 days
-          max-age: 259200
-      # -------- THIS ACTION --------
 
       # http://man7.org/linux/man-pages/man1/date.1.html
       - name: Get Date
@@ -30,6 +22,7 @@ jobs:
         run: |
           echo "date=$(/bin/date -u "+date-%Y-%m-%d-time-%H-%M-%S")" >> $GITHUB_OUTPUT
         shell: bash
+
       - uses: actions/cache@v3
         with:
           path: |
@@ -37,13 +30,27 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json', 'package.json') }}-${{ steps.get-date.outputs.date }}
           restore-keys: |
             ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json', 'package.json') }}-
-      - name: Install packages and build the app
+
+      - name: Install packages & Build the action
         run: npm ci
+
+      # -------- THIS ACTION --------
+      - name: Purge caches
+        uses: ./.
+        with:
+          debug: true
+          created: true
+          accessed: true
+          # 3 days
+          max-age: 259200
+      # -------- THIS ACTION --------
+
       - name: Commit & Push changes
+        if: github.event_name == 'push'
         run: |
           git config --global user.name github-actions
           git config --global user.email github-actions@github.com
           git pull --rebase --autostash
           git add dist
-          git commit -m "action: build the app" || echo ""
+          git commit -m "action: build the action" || echo ""
           git push
