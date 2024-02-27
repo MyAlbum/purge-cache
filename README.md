@@ -40,7 +40,13 @@ steps:
 
 ### Token
 
-Set a GitHub token, will default to `${github.token}`. This will probably not be nessesary as the default token should be sufficient
+Set a GitHub token, will default to `${github.token}`. This will probably not be nessesary as the default token should be sufficient. 
+
+In case custom `permissions` are set for the tokens used in your actions workflow, to purge existing caches, the permission:
+```
+actions: write
+```
+needs to be available for the token. 
 
 ```yaml
 steps:
