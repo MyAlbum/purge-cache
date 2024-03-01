@@ -20,7 +20,7 @@ inputs:
     description: Used to communicate with GitHub API. Since there's a default, this is typically not supplied by the user.
     default: ${{ github.token }}
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
 branding:
   icon: 'database'
